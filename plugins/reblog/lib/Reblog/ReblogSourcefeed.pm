@@ -59,8 +59,8 @@ sub set_defaults {
     $obj->has_error(0);
     $obj->is_active(1);
     $obj->is_excerpted(0);
-    $obj->total_failures(0);
-    $obj->consecutive_failures(0);
+    $obj->total_fail(0);
+    $obj->consec_fail(0);
 }
 
 sub inject_worker {
@@ -69,7 +69,7 @@ sub inject_worker {
     require MT::TheSchwartz;
     require TheSchwartz::Job;
     require Reblog::Util;
-    $self->epoch_last_fired( time() );
+    $self->ep_last_frd( time() );
     $self->save;
     my $blog_id = $self->blog_id;
     my $plugin  = MT->component('reblog');
@@ -77,7 +77,7 @@ sub inject_worker {
         = $plugin->get_config_value( 'frequency', 'blog:' . $blog_id );
     $frequency ||= Reblog::Util::DEFAULT_FREQUENCY();
     my $current_epoch;
-    $current_epoch = $self->epoch_last_fired;
+    $current_epoch = $self->ep_last_frd;
     $current_epoch ||= time();
     my $next_epoch = $current_epoch + ($frequency);
 
@@ -109,10 +109,10 @@ sub increment_error {
     $error ||= 'Unknown error';
     my $plugin         = MT->component('reblog');
     my $log            = Reblog::Log::ReblogSourcefeed->new;
-    my $total_failures = $self->total_failures;
+    my $total_failures = $self->total_fail;
     $total_failures ||= 0;
     $self->total_failures( $total_failures + 1 );
-    my $consecutive_failures = $self->consecutive_failures;
+    my $consecutive_failures = $self->consec_fail;
     $consecutive_failures ||= 0;
     $consecutive_failures++;
     $self->consecutive_failures($consecutive_failures);
