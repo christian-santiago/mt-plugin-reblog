@@ -615,8 +615,8 @@ sub do_import {
         }
         $feedcount++;
         $sourcefeed->has_error(0);
-        $sourcefeed->consecutive_failures(0);
-        $sourcefeed->epoch_last_read( time() );
+        $sourcefeed->consec_fail(0);
+        $sourcefeed->ep_last_rd( time() );
         $sourcefeed->save;
         foreach my $eRec (@entries) {
             if ( $eRec->{status} ne 'old' ) {
