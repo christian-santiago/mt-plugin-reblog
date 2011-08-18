@@ -36,6 +36,9 @@ use Encode;
 
 use constant SPLIT_TOKEN => chr(28);
 
+#logging
+use Log::Log4perl;
+
 sub iso2dt {
 
     # TAKEN FROM XML::Atom::Util
@@ -187,6 +190,8 @@ sub create_placement {
 }
 
 sub import_entries {
+    my $logger = MT::Log->get_logger();
+    
     my $class = shift;
     my ( $sourcefeed, $args ) = @_;
     my ( $blog_id, $author, $suppress, $cache_ttl );
@@ -376,6 +381,7 @@ sub import_entries {
             $channellink
                 = $xp->findvalue('/feed/link[@rel="alternate"]/@href');
         }
+        $logger->debug("CHANNEL TITLE: ",$channeltitle);
         my $nodeset;
         if ( $type eq 'atom' ) {
             $nodeset = $xp->findnodes("//entry");
@@ -387,12 +393,18 @@ sub import_entries {
         while ( my $node = $nodeset->shift() ) {
             my $body;
             $body = &_clean_html( $xp->findvalue( $map->{'body'}, $node ) );
+ 
             unless ($body) {
                 $body = &_clean_html(
                     $xp->findvalue( $map->{'summary'}, $node ) );
             }
+            $logger->debug("BODY: ",$body);
+            
             my $title
                 = &_clean_html( $xp->findvalue( $map->{'title'}, $node ) );
+
+            $logger->debug("TITLE: ",$title);
+            
             my $link = $xp->findvalue( $map->{'link'}, $node );
             my $date = $xp->findvalue( $map->{'date'}, $node );
             if ( !$date && $map->{'date'} eq 'pubDate' ) {
@@ -628,7 +640,7 @@ sub import_entries {
                 );
 
                 if ( $so->is_excerpted ) {
-
+                    logger->debug("THIS IS THE REGEX");
                     # chop body with regex
                     $body =~ m|(.*?</p>.*?</p>)(.*)|ms;
 
