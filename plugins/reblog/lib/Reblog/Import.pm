@@ -66,6 +66,8 @@ sub iso2dt {
 }
 
 sub assign_categories {
+    my $logger = MT::Log->get_logger();
+    
     my ( $entry, $blog, $author, $subjects ) = @_;
     my $res    = [];
     my $plugin = MT->component('reblog');
@@ -381,7 +383,10 @@ sub import_entries {
             $channellink
                 = $xp->findvalue('/feed/link[@rel="alternate"]/@href');
         }
+        
+        # We want the rss feed title to be reported as a category
         $logger->debug("CHANNEL TITLE: ",$channeltitle);
+        
         my $nodeset;
         if ( $type eq 'atom' ) {
             $nodeset = $xp->findnodes("//entry");
@@ -412,8 +417,13 @@ sub import_entries {
                 # RSS 0.91 properly treats pubDate as a channel-level item
                 $date = $xp->findvalue("/rss/channel/pubDate");
             }
-            my $subjects
-                = &_clean_html( $xp->findvalue( $map->{'subjects'}, $node ) );
+            
+            #my $subjects
+            #    = &_clean_html( $xp->findvalue( $map->{'subjects'}, $node ) );
+            
+            #Rather than finding the categories from the feed, replace it with the feed title.
+            my $subjects = $channeltitle;
+            $logger->debug("CATEGORY: ", $subjects);
 
             my $guid     = $xp->findvalue( $map->{'guid'},     $node );
             my $via_link = $xp->findvalue( $map->{'via_link'}, $node );
@@ -462,10 +472,11 @@ sub import_entries {
                             &_clean_html( $catnode->getNodeValue );
                     }
                     elsif ( $type eq 'rss' ) {
+                       logger->debug("CATEGORY: ",$catnode->string_value);
                         push @subjects,
                             &_clean_html( $catnode->string_value );
                     }
-                }
+                 }
                 if ( scalar @subjects > 1 ) {
                     $subjects = join SPLIT_TOKEN, @subjects;
                 }
