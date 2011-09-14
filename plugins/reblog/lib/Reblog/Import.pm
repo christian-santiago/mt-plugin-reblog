@@ -384,7 +384,6 @@ sub import_entries {
                 = $xp->findvalue('/feed/link[@rel="alternate"]/@href');
         }
         
-        # We want the rss feed title to be reported as a category
         $logger->debug("CHANNEL TITLE: ",$channeltitle);
         
         my $nodeset;
@@ -407,8 +406,6 @@ sub import_entries {
             
             my $title
                 = &_clean_html( $xp->findvalue( $map->{'title'}, $node ) );
-
-            $logger->debug("TITLE: ",$title);
             
             my $link = $xp->findvalue( $map->{'link'}, $node );
             my $date = $xp->findvalue( $map->{'date'}, $node );
@@ -460,27 +457,26 @@ sub import_entries {
                 }
                 $enclosure_length = $enclosures->getAttribute('length');
             }
-
+            # CKS: Removed this section; We don't want to do this, because we always want to return the feed title.
             # Deal with the case of multiple categories in Atom and RSS
-            if ( $type eq 'atom' || $type eq 'rss' ) {
-                my @subjects;
-                my @subjectnodes
-                    = ( $xp->findnodes( $map->{'subjects'}, $node ) );
-                foreach my $catnode (@subjectnodes) {
-                    if ( $type eq 'atom' ) {
-                        push @subjects,
-                            &_clean_html( $catnode->getNodeValue );
-                    }
-                    elsif ( $type eq 'rss' ) {
-                       logger->debug("CATEGORY: ",$catnode->string_value);
-                        push @subjects,
-                            &_clean_html( $catnode->string_value );
-                    }
-                 }
-                if ( scalar @subjects > 1 ) {
-                    $subjects = join SPLIT_TOKEN, @subjects;
-                }
-            }
+            #if ( $type eq 'atom' || $type eq 'rss' ) {
+            #    my @subjects;
+            #    my @subjectnodes
+            #        = ( $xp->findnodes( $map->{'subjects'}, $node ) );
+            #    foreach my $catnode (@subjectnodes) {
+            #        if ( $type eq 'atom' ) {
+            #            push @subjects,
+            #                &_clean_html( $catnode->getNodeValue );
+            #        }
+            #        elsif ( $type eq 'rss' ) {
+            #            push @subjects,
+            #                &_clean_html( $catnode->string_value );
+            #        }
+            #     }
+            #    if ( scalar @subjects > 1 ) {
+            #        $subjects = join SPLIT_TOKEN, @subjects;
+            #    }
+            #}
 
             # Let's plug in some sensible values if these are missing
             # which will imply that we're not using a reblog feed but
